@@ -1,0 +1,9 @@
+---
+- hosts: all
+  gather_facts: False
+  roles:
+    - role: vm_create
+      vars:
+        image: '{{ images.ub1804 }}'
+        size: '{{ sizes.small }}'
+        vm_tag: "webinar1"

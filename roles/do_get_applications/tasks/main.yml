@@ -1,0 +1,21 @@
+# list all available applications and check APIs health
+#- name: debug
+#  debug:
+#    msg: "{{ xapikey }}"
+
+- name: get_applications
+  uri:
+    url: "https://api.serverspace.ru/api/v1/applications"
+    method: GET
+    headers:
+      "x-api-key": "{{ xapikey }}"
+    body_format: json
+    status_code: 200
+  register: images
+  changed_when: 200
+  delegate_to: localhost
+  run_once: True
+
+- debug:
+    msg: "{{ images.json}}"
+  run_once: True
