@@ -1,11 +1,6 @@
-# list all available images and check APIs health
-#- name: debug
-#  debug:
-#    msg: "{{ xapikey }}"
-
 - name: get_images
   uri:
-    url: "https://api.serverspace.ru/api/v1/images"
+    url: "https://api.serverspace.{{ domain }}/api/v1/images"
     method: GET
     headers:
       "x-api-key": "{{ xapikey }}"

@@ -1,0 +1,16 @@
+- name: clfl_get_dns_records
+  uri:
+    url: "https://api.cloudflare.com/client/v4/zones/{{ zone_id }}/dns_records"
+    method: GET
+    headers:
+      "X-Auth-Key": "{{ xapikey }}"
+      "X-Auth-Email": "{{ email }}"
+    body_format: json
+    status_code: 200
+  register: dns_records
+  changed_when: 200
+  delegate_to: localhost
+  run_once: True
+
+- debug:
+    msg: "{{ dns_records }}"

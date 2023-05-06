@@ -2,4 +2,4 @@
 - hosts: localhost
   gather_facts: False
   roles:
-    - do_get_locations
+    - sp_get_applications

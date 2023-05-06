@@ -1,0 +1,43 @@
+- name: get_ssh_keys
+  uri:
+    url: "https://api.serverspace.{{ domain }}/api/v1/ssh-keys"
+    method: GET
+    headers:
+      "x-api-key": "{{ xapikey }}"
+    body_format: json
+    status_code: 200
+  register: ssh_keys
+  changed_when: 200
+  delegate_to: localhost
+  run_once: True
+  when: operation == "get"
+
+- name: print_ssh_keys
+  debug:
+    msg: "{{ ssh_keys.json}}"
+  run_once: True
+  when: operation == "get"
+
+
+- name: add_ssh_key
+  uri:
+    url: "https://api.serverspace.{{ domain }}/api/v1/ssh-keys"
+    method: POST
+    headers:
+      "x-api-key": "{{ xapikey }}"
+    body_format: json
+    body:
+      name: "{{ ssh_key_name }}"
+      public_key: "{{ public_key }}"
+    status_code: 201
+  register: ssh_key_add_result
+  changed_when: 201
+  delegate_to: localhost
+  run_once: True
+  when: operation == "create"
+
+- name: print_id_of_added_key
+  debug:
+    msg: "{{ ssh_key_add_result.json }}"
+  run_once: True
+  when: operation == "create"

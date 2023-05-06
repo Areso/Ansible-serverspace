@@ -1,0 +1,16 @@
+- name: get_servers
+  uri:
+    url: "https://api.serverspace.{{ domain }}/api/v1/servers?tag=tagotest"
+    method: GET
+    headers:
+      "x-api-key": "{{ xapikey }}"
+    body_format: json
+    status_code: 200
+  register: servers
+  changed_when: 200
+  delegate_to: localhost
+  run_once: True
+
+- debug:
+    msg: "{{ servers.json}}"
+  run_once: True
