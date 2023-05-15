@@ -1,3 +1,4 @@
+---
 - name: get_ssh_keys
   uri:
     url: "https://api.serverspace.{{ domain }}/api/v1/ssh-keys"
@@ -18,6 +19,26 @@
   run_once: True
   when: operation == "get"
 
+
+- name: get_ssh_key_by_id
+  uri:
+    url: "https://api.serverspace.{{ domain }}/api/v1/ssh-keys/{{ ssh_key_id }}"
+    method: GET
+    headers:
+      "x-api-key": "{{ xapikey }}"
+    body_format: json
+    status_code: 200
+  register: ssh_key
+  changed_when: 200
+  delegate_to: localhost
+  run_once: True
+  when: operation == "get_by_id"
+
+- name: print_ssh_key_by_id
+  debug:
+    msg: "{{ ssh_key.json }}"
+  run_once: True
+  when: operation == "get_by_id"
 
 - name: add_ssh_key
   uri:
@@ -41,3 +62,24 @@
     msg: "{{ ssh_key_add_result.json }}"
   run_once: True
   when: operation == "create"
+
+
+- name: delete_ssh_key
+  uri:
+    url: "https://api.serverspace.{{ domain }}/api/v1/ssh-keys/{{ ssh_key_id }}"
+    method: DELETE
+    headers:
+      "x-api-key": "{{ xapikey }}"
+    body_format: json
+    status_code: 200
+  register: ssh_key_delete_result
+  changed_when: 200
+  delegate_to: localhost
+  run_once: True
+  when: operation == "delete"
+
+- name: print_of_deletion_result
+  debug:
+    msg: "{{ ssh_key_delete_result }}"
+  run_once: True
+  when: operation == "delete"

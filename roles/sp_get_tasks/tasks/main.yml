@@ -1,16 +1,17 @@
-- name: get_servers
+- name: get_task
   uri:
-    url: "https://api.serverspace.{{ domain }}/api/v1/servers"
+    url: "https://api.serverspace.{{ domain }}/api/v1/tasks/{{ task_id }}"
     method: GET
     headers:
       "x-api-key": "{{ xapikey }}"
     body_format: json
     status_code: 200
-  register: servers
+  register: tasks
   changed_when: 200
   delegate_to: localhost
   run_once: True
 
 - debug:
-    msg: "{{ servers.json.servers }}"
+    msg: "{{ tasks.json }}"
   run_once: True
+  when: object

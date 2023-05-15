@@ -46,7 +46,7 @@
       ssh_key_ids: [8322]
       applications_ids: []
       server_init_script: ""
-      tags: "tag1"
+      tags: ["tag1"]
     body_format: json
     status_code: 201
   register: vm_create_result

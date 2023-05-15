@@ -9,7 +9,7 @@ Ansible playbooks for an infrastructure in Serverspace
 where `yourapikey` is a variable value, you got in the first step  
 insert the output to `group_vars/all.yml`  
   
-OPTIONALLY:  
+## OPTIONALLY:  
 if you wanna not only create VMs and install software, but also register their names with DNS, then you need to peform a bit more:  
 5. Register a domain  
 6. Transfer DNS of the domain to Cloudflare  
@@ -23,10 +23,17 @@ if you wanna not only create VMs and install software, but also register their n
 `ansible-vault encrypt_string --vault-password-file ../ansible_vault.txt 'yourZoneId' --name 'clfr_zone_id'`
 
   
-## Check, whether it's working
-1. `ansible-playbook --vault-password-file ../ansible_vault.txt sp_get_locations.yml` - you should get all regions  
-2. `ansible-playbook --vault-password-file ../ansible_vault.txt sp_get_images.yml`    - you should get images  
-3. 
-
+## Working with references: acquring public information
+1. `ansible-playbook --vault-password-file ../ansible_vault.txt sp_get_locations.yml` - get locations, and their options  
+2. `ansible-playbook --vault-password-file ../ansible_vault.txt sp_get_images.yml`    - get images, and their options  
+## Working with user-related data:
+1. `ansible-playbook --vault-password-file ../ansible_vault.txt sp_get_project.yml`   - get user's project (binded to the API token), balance   
+2. `ansible-playbook --vault-password-file ../ansible_vault.txt sp_ssh_keys.yml`      - get user's ssh keys  
+3. `ansible-playbook --vault-password-file ../ansible_vault.txt  -e "operation=create ssh_key_name=fuego public_key='ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDPHverylongIHgsMC0ocK9S7GFQEuwBsZer1teMuKRVryUWlB3hKOWCdmEUzutBd5Zaejnijn6Oz/Un8jCYFei1m/5nQtMHfGEaKj/6ggvcGQnsUqg3Hrz5vFDpFrxvhjoNrI7Pd/SdBSEPli3jreNX6DeZ88moRI fuego@laptop'" sp_ssh_keys.yml` - add ssh publick key to the user    
+4. `ansible-playbook --vault-password-file ../ansible_vault.txt -e "operation=get_by_id ssh_key_id=8322" sp_ssh_keys.yml` - get user ssh key by id  
+5. `ansible-playbook --vault-password-file ../ansible_vault.txt -e "operation=delete ssh_key_id=11340" sp_ssh_keys.yml` - delete user key by key id  
+##  
+  
 ## Create your first VM
-1. 
+1. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test1, " vm_create.yml` - create vm called `test1`   
+2. `ansible-playbook --vault-password-file ../ansible_vault.txt sp_get_servers.yml` - get all your servers

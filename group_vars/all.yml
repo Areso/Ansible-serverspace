@@ -76,4 +76,7 @@ images:
 #for more information, run
 #ansible-playbook --vault-password-file ../ansible_vault.txt sp_get_images.yml
 
+# used in sp_ssh_keys role
 operation: "get"
+# used in sp_get_task role
+object: "server"
