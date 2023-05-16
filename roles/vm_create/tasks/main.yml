@@ -23,7 +23,7 @@
   delegate_to: localhost
   ignore_errors: True
 
-# create vms
+# create vm
 - name: vm_create
   uri:
     url: "https://api.serverspace.ru/api/v1/servers"
@@ -50,27 +50,124 @@
     body_format: json
     status_code: 201
   register: vm_create_result
-  changed_when: 200
+  changed_when: 201
   delegate_to: localhost
 
+- name: set_task_id
+  set_fact:
+    task_id: "{{ vm_create_result.json.task_id }}"
 
-# get droplets IPs
-- name: vm_get_ip
+- name: only_finished_task_would_return_server_id
+  pause:
+    seconds: 90
+
+- name: get_task
   uri:
-    url: "https://api.digitalocean.com/v2/droplets/{{ vm_create_result.json.droplet.id }}"
+    url: "https://api.serverspace.{{ domain }}/api/v1/tasks/{{ task_id }}"
     method: GET
     headers:
-      "Authorization": "Bearer {{ do_token }}"
-    force_basic_auth: yes
+      "x-api-key": "{{ xapikey }}"
     body_format: json
     status_code: 200
-  register: vm_get_it
+  register: task_answer
   changed_when: 200
   delegate_to: localhost
 
-- name: breakpoint1
-  shell: "echo breakpoint1"
-  delegate_to: localhost
+
+- name: set_task_status
+  set_fact:
+    task_status: "{{ task_answer.json.task.is_completed }}"
+
+- name: Install, configure, and start Apache
+  block:
+
+  - name: set_server_id
+    set_fact:
+      server_id: "{{ task_answer.json.task.server_id }}"
+
+  - name: print_server_id
+    debug:
+      msg: "{{ server_id }}"
+  
+    # get vm details
+  - name: get_vm_details
+    uri:
+      url: "https://api.serverspace.ru/api/v1/servers/{{ server_id }}"
+      method: GET
+      headers:
+        "x-api-key": "{{ xapikey }}"
+      body_format: json
+      status_code: 200
+    register: vm_details
+    changed_when: 200
+    delegate_to: localhost
+
+  - name: print_vm_details
+    debug:
+      msg: "{{ vm_details }}"
+  
+  - name: set_root_password
+    set_fact:
+      root_password: "{{ vm_details.json.server.password }}"
+  
+  - name: print_root_password
+    debug:
+      msg: "{{ root_password }}"
+
+  - name: set_ip
+    set_fact:
+      server_ip: "{{ vm_details.json.server.nics[0].ip_address }}"
+  
+  - name: print_ip
+    debug:
+      msg: "{{ server_ip }}"
+
+  - name: remove_server_fingerprints_if_any
+    command: 'ssh-keygen -f ~/.ssh/known_hosts -R {{ server_ip }}'
+    register: result_of_removing
+    delegate_to: localhost
+
+  - name: print_result_of_removing
+    debug:
+      msg: "{{ result_of_removing }}"
+
+  - name: get_fingerprint_from_remote_host
+    command: "ssh-keyscan -t rsa {{ server_ip }} >> ~/.ssh/known_hosts"
+    register: result_of_adding_fingerprint
+    delegate_to: localhost
+
+  - name: print_result_of_adding_fingerprint
+    debug:
+      msg: "{{ result_of_adding_fingerprint }}"
+
+  - name: set_user_password
+    set_fact:
+      user_password: "{{ root_password }}Hardening"
+  
+  - name: print_user_password
+    debug:
+      msg: "{{ user_password }}"
+
+  - name: add_new_user_to_remote_host
+    command: "useradd -d /root -p $(openssl passwd -1 {{ user_password }}) hackatoner"
+    register: add_new_user_result
+    delegate_to: "{{ server_ip }}"
+
+  - name: print_add_new_user_result
+    debug:
+      msg: "{{ add_new_user_result }}"
+
+  - name: add_hackatoner_user_to_sudo_group
+    command: "usermod -aG sudo hackatoner"
+    register: add_to_sudo_group_result
+    delegate_to: "{{ server_ip }}"
+
+  - name: print_add_to_sudo_group_result
+    debug:
+      msg: "{{ add_to_sudo_group_result }}"
+
+
+  when: task_status == "Completed"
 
 # print all the params of the newly created VM
 - name: print params of # print network
@@ -102,13 +199,13 @@
 - pause:
     seconds: 5
 
-- name: add_host_to_known_hosts
-  shell: "ssh-keyscan -t rsa {{ inventory_hostname }} >> ~/.ssh/known_hosts"
-  delegate_to: localhost
-  register: add_host
-  retries: 5
-  delay: 30
-  until: add_host.rc == 0
+#- name: add_host_to_known_hosts
+#  shell: "ssh-keyscan -t rsa {{ inventory_hostname }} >> ~/.ssh/known_hosts"
+#  delegate_to: localhost
+#  register: add_host
+#  retries: 5
+#  delay: 30
+#  until: add_host.rc == 0
 
 - name: add_host_to_known_hosts_rc
   shell: "echo $?"
