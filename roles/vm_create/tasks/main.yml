@@ -132,7 +132,7 @@
       msg: "{{ result_of_removing }}"
 
   - name: get_fingerprint_from_remote_host
-    command: "ssh-keyscan -t rsa {{ server_ip }} >> ~/.ssh/known_hosts"
+    shell: "ssh-keyscan -H -t rsa {{ server_ip }} >> ~/.ssh/known_hosts"
     register: result_of_adding_fingerprint
     delegate_to: localhost
 
@@ -149,7 +149,7 @@
       msg: "{{ user_password }}"
 
   - name: add_new_user_to_remote_host
-    command: "useradd -d /root -p $(openssl passwd -1 {{ user_password }}) hackatoner"
+    shell: "useradd -m -d /home/hackatoner -p $(openssl passwd -1 {{ user_password }}) hackatoner"
     register: add_new_user_result
     delegate_to: "{{ server_ip }}"
 
