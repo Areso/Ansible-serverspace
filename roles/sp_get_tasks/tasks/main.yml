@@ -1,6 +1,6 @@
 - name: get_task
   uri:
-    url: "https://api.serverspace.{{ domain }}/api/v1/tasks/{{ task_id }}"
+    url: "https://api.serverspace.{{ sp_domain }}/api/v1/tasks/{{ task_id }}"
     method: GET
     headers:
       "x-api-key": "{{ xapikey }}"

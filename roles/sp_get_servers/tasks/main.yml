@@ -1,6 +1,6 @@
 - name: get_servers
   uri:
-    url: "https://api.serverspace.{{ domain }}/api/v1/servers"
+    url: "https://api.serverspace.{{ sp_domain }}/api/v1/servers"
     method: GET
     headers:
       "x-api-key": "{{ xapikey }}"

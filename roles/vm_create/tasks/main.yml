@@ -46,7 +46,7 @@
       ssh_key_ids: [8322]
       applications_ids: []
       server_init_script: ""
-      tags: ["tag1"]
+      tags: ["hackaton"]
     body_format: json
     status_code: 201
   register: vm_create_result
@@ -63,7 +63,7 @@
 
 - name: get_task
   uri:
-    url: "https://api.serverspace.{{ domain }}/api/v1/tasks/{{ task_id }}"
+    url: "https://api.serverspace.{{ sp_domain }}/api/v1/tasks/{{ task_id }}"
     method: GET
     headers:
       "x-api-key": "{{ xapikey }}"
@@ -166,54 +166,31 @@
     debug:
       msg: "{{ add_to_sudo_group_result }}"
 
-
+  - name: add_host_to_hosts
+    shell: "echo '{{ server_ip }} {{ inventory_hostname }} # {{ vm_tag }}' >> /etc/hosts"
+    become: yes
+    delegate_to: localhost
+    when: dns == "local"
+  
+  - name: clfl_add_dns_record
+    uri:
+      url: "https://api.cloudflare.com/client/v4/zones/{{ clfr_zone_id }}/dns_records"
+      method: POST
+      headers:
+        "X-Auth-Key": "{{ clfr_auth_key }}"
+        "X-Auth-Email": "{{ clfr_auth_email }}"
+      body_format: json
+      body:
+        content: "{{ server_ip }}"
+        name: "{{ inventory_hostname }}.{{ user_domain }}"
+        proxied: False
+        type: "A"
+        comment: "serverspace"
+        ttl: 3600
+      status_code: 200
+    register: dns_records
+    changed_when: 200
+    delegate_to: localhost
+    when: dns == "cloudflare"
+    
   when: task_status == "Completed"
-
-# print all the params of the newly created VM
-- name: print params of # print network
-  debug:
-    msg: "{{ vm_get_it.json }}"
-
-# print network
-- debug:
-    msg: "{{ vm_get_it.json.droplet.networks.v4 }}"
-
-# print IP
-- debug:
-    msg: "{{ vm_get_it.json.droplet.networks.v4[0].ip_address }}"
-
-- name: add_host_to_hosts
-  shell: "echo '{{ vm_get_it.json.droplet.networks.v4[0].ip_address }} {{ inventory_hostname }} # {{ vm_tag }}' >> /etc/hosts"
-  become: yes
-  delegate_to: localhost
-
-- name: get_etc_hosts
-  shell: "cat /etc/hosts"
-  delegate_to: localhost
-  register: etc_hosts
-
-- name: show_etc_hosts
-  debug:
-    msg: "{{ etc_hosts }}"
-
-- pause:
-    seconds: 5
-
-#- name: add_host_to_known_hosts
-#  shell: "ssh-keyscan -t rsa {{ inventory_hostname }} >> ~/.ssh/known_hosts"
-#  delegate_to: localhost
-#  register: add_host
-#  retries: 5
-#  delay: 30
-#  until: add_host.rc == 0
-
-- name: add_host_to_known_hosts_rc
-  shell: "echo $?"
-  delegate_to: localhost
-  register: add_host_rc
-
-- name: show_result_of_adding_host
-  debug:
-    msg: 
-      - "{{ add_host }}"
-      - "{{ add_host_rc }}"

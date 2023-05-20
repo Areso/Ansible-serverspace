@@ -1,6 +1,6 @@
 - name: get_locations
   uri:
-    url: "https://api.serverspace.{{ domain }}/api/v1/locations"
+    url: "https://api.serverspace.{{ sp_domain }}/api/v1/locations"
     method: GET
     headers:
       "x-api-key": "{{ xapikey }}"

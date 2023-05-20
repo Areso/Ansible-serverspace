@@ -1,6 +1,6 @@
 - name: get_images
   uri:
-    url: "https://api.serverspace.{{ domain }}/api/v1/images"
+    url: "https://api.serverspace.{{ sp_domain }}/api/v1/images"
     method: GET
     headers:
       "x-api-key": "{{ xapikey }}"

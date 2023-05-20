@@ -1,4 +1,5 @@
 ---
+#Serverspace API Key
 xapikey: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           30363337336236313463663538613334643436353664323661393566663632323734363165663231
@@ -10,6 +11,10 @@ xapikey: !vault |
           63373435346263613366653863353439623931656662313266663639626363373666386530666138
           64393731386332613164
 
+sp_domain: "ru"
+#also sp_domain: "io" is available for the international unit
+
+# start of Cloudflare block
 clfr_auth_key: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           39636464376262333062316333636132666334636462343132656364356538313138356236326135
@@ -36,8 +41,8 @@ clfr_zone_id: !vault |
           65363731666133336230333639666164323332343533306435623632306531336264303937326434
           6638613564663432616433386235303830393437646433373736
 
-domain: "ru"
-#also domain: "io" is available for international unit
+user_domain: "xlaba.site"
+# end of Cloudflare block
 
 locations:
   canada: "ca"
@@ -78,5 +83,9 @@ images:
 
 # used in sp_ssh_keys role
 operation: "get"
+
 # used in sp_get_task role
 object: "server"
+
+# used in sp_vm_deploy role
+dns: "local"

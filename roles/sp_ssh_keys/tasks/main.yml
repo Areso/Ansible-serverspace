@@ -1,7 +1,7 @@
 ---
 - name: get_ssh_keys
   uri:
-    url: "https://api.serverspace.{{ domain }}/api/v1/ssh-keys"
+    url: "https://api.serverspace.{{ sp_domain }}/api/v1/ssh-keys"
     method: GET
     headers:
       "x-api-key": "{{ xapikey }}"
@@ -22,7 +22,7 @@
 
 - name: get_ssh_key_by_id
   uri:
-    url: "https://api.serverspace.{{ domain }}/api/v1/ssh-keys/{{ ssh_key_id }}"
+    url: "https://api.serverspace.{{ sp_domain }}/api/v1/ssh-keys/{{ ssh_key_id }}"
     method: GET
     headers:
       "x-api-key": "{{ xapikey }}"
@@ -42,7 +42,7 @@
 
 - name: add_ssh_key
   uri:
-    url: "https://api.serverspace.{{ domain }}/api/v1/ssh-keys"
+    url: "https://api.serverspace.{{ sp_domain }}/api/v1/ssh-keys"
     method: POST
     headers:
       "x-api-key": "{{ xapikey }}"
@@ -66,7 +66,7 @@
 
 - name: delete_ssh_key
   uri:
-    url: "https://api.serverspace.{{ domain }}/api/v1/ssh-keys/{{ ssh_key_id }}"
+    url: "https://api.serverspace.{{ sp_domain }}/api/v1/ssh-keys/{{ ssh_key_id }}"
     method: DELETE
     headers:
       "x-api-key": "{{ xapikey }}"
