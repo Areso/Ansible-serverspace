@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: destroy
   gather_facts: False
   roles:
     - vm_destroy

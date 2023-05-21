@@ -174,11 +174,11 @@
   
   - name: clfl_add_dns_record
     uri:
-      url: "https://api.cloudflare.com/client/v4/zones/{{ clfr_zone_id }}/dns_records"
+      url: "https://api.cloudflare.com/client/v4/zones/{{ clfl_zone_id }}/dns_records"
       method: POST
       headers:
-        "X-Auth-Key": "{{ clfr_auth_key }}"
-        "X-Auth-Email": "{{ clfr_auth_email }}"
+        "X-Auth-Key": "{{ clfl_auth_key }}"
+        "X-Auth-Email": "{{ clfl_auth_email }}"
       body_format: json
       body:
         content: "{{ server_ip }}"

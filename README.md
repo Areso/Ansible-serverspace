@@ -21,6 +21,8 @@ if you wanna not only create VMs and install software, but also register their n
 `ansible-vault encrypt_string --vault-password-file ../ansible_vault.txt 'yourCloudflareEmail' --name 'clfr_auth_email'`
 11. Encrypt your Zone ID:
 `ansible-vault encrypt_string --vault-password-file ../ansible_vault.txt 'yourZoneId' --name 'clfr_zone_id'`
+12. Now you can check whether it's working for you:
+
 
   
 ## Working with references: acquring public information

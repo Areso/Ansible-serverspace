@@ -15,7 +15,7 @@ sp_domain: "ru"
 #also sp_domain: "io" is available for the international unit
 
 # start of Cloudflare block
-clfr_auth_key: !vault |
+clfl_auth_key: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           39636464376262333062316333636132666334636462343132656364356538313138356236326135
           3761396166343732353961656164663536653632383761380a393661343332626139396662336532
@@ -24,7 +24,7 @@ clfr_auth_key: !vault |
           39636563666236366239333765373936356364313664323539346333656232633363323631373965
           6430343130643362656439343362346562366637333766613666
 
-clfr_auth_email: !vault |
+clfl_auth_email: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           66646462653562643366346537353766613034306566363935616333356362653836633562663232
           3963633163643231653934326337666561373461653262620a613932323464346132353865623865
@@ -32,7 +32,7 @@ clfr_auth_email: !vault |
           3333373662346162350a613539356534323930646161303466353431303765353234343664323631
           64323766336531326132623931393135323565363836643437333933376531323630
 
-clfr_zone_id: !vault |
+clfl_zone_id: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           35323534376639333031383539356138363164366364636636666333393262323937393965396235
           3366386537383032326537333466363864343466346534380a626136376661313433396439333333
@@ -72,9 +72,28 @@ ram:
   vast: 65536
 
 images:
+# Linuxes
   ub1804: "Ubuntu-18.04-X64"
   ub2004: "Ubuntu-20.04-X64"
   ub2204: "Ubuntu-22.04-X64"
+  debian10: "Debian-10.13-X64"
+  debian11: "Debian-11.5-X64"
+  centos79: "CentOS-7.9-X64"
+  centos83: "CentOS-8.3-X64"
+  oracle86: "Oracle-8.6-X64"
+  oracle91: "Oracle-9.1-X64"
+  alma87: "AlmaLinux-8.7-X64"
+  alma91: "AlmaLinux-9.1-X64"
+# BSD
+  freebsd12: "Freebsd-12.2-X64"
+  freebsd13: "Freebsd-13.2-X64"
+# Windows must die
+  windows19: "Windows-Server 2019 Std-X64"
+  windows22: "Windows-Server 2022 Std-X64"
+
+ssh_keys_allowed:
+  windows19: False
+  windows22: False
 
 #note, there are Oracle, Debian, CentOS distros available
 #also, there are FreeBSD, Windows Server OS also available

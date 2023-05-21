@@ -1,0 +1,39 @@
+- name: clfl_get_dns_records
+  uri:
+    url: "https://api.cloudflare.com/client/v4/zones/{{ clfl_zone_id }}/dns_records"
+    method: GET
+    headers:
+      "X-Auth-Key": "{{ clfl_auth_key }}"
+      "X-Auth-Email": "{{ clfl_auth_email }}"
+    body_format: json
+    status_code: 200
+  register: dns_records
+  changed_when: 200
+  delegate_to: localhost
+  run_once: True
+
+- name: set_fact_fqdn
+  set_fact:
+    fqdn: "{{ inventory_hostname}}.{{ user_domain }}"
+
+- name: set_fact_record_id
+  set_fact:
+    record_id: "{{ item.id }}"
+  with_items: "{{ dns_records.json.result }}"
+  when: 
+    - item.name == fqdn
+
+- name: clfl_del_dns_record
+  uri:
+    url: "https://api.cloudflare.com/client/v4/zones/{{ clfl_zone_id }}/dns_records/{{ record_id }}"
+    method: DELETE
+    headers:
+      "X-Auth-Key": "{{ clfl_auth_key }}"
+      "X-Auth-Email": "{{ clfl_auth_email }}"
+    body_format: json
+    status_code: 200
+  register: dns_records_result
+  when: record_id is defined
+  changed_when: 200
+  delegate_to: localhost
+

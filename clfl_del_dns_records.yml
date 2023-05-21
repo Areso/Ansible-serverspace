@@ -2,4 +2,4 @@
 - hosts: all
   gather_facts: False
   roles:
-    - clfl_get_dns_records
+    - clfl_del_dns_records

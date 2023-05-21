@@ -1,16 +1,22 @@
-- name: clfl_get_dns_records
+- name: clfl_add_dns_record
   uri:
     url: "https://api.cloudflare.com/client/v4/zones/{{ clfl_zone_id }}/dns_records"
-    method: GET
+    method: POST
     headers:
       "X-Auth-Key": "{{ clfl_auth_key }}"
       "X-Auth-Email": "{{ clfl_auth_email }}"
     body_format: json
+    body:
+      content: "{{ server_ip }}"
+      name: "{{ inventory_hostname }}.{{ user_domain }}"
+      proxied: False
+      type: "A"
+      comment: "serverspace"
+      ttl: 3600
     status_code: 200
   register: dns_records
   changed_when: 200
-  delegate_to: localhost
-  run_once: True
+    delegate_to: localhost
 
 - debug:
     msg: "{{ dns_records }}"
