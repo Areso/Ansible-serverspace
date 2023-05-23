@@ -1,0 +1,9 @@
+---
+- hosts: all
+  gather_facts: False
+  roles:
+    - role: sp_vm_create
+      vars:
+        image: '{{ images.ub2204 }}'
+        size: '{{ sizes.small }}'
+        vm_tag: "hackaton"
