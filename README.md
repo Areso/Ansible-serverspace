@@ -22,7 +22,7 @@ if you wanna not only create VMs and install software, but also register their n
 11. Encrypt your Zone ID:
 `ansible-vault encrypt_string --vault-password-file ../ansible_vault.txt 'yourZoneId' --name 'clfr_zone_id'`
 12. Now you can check whether it's working for you:
-
+`ansible-playbook --vault-password-file ../ansible_vault.txt clfl_get_dns_records.yml`
 
   
 ## Working with references: acquring public information
@@ -37,5 +37,6 @@ if you wanna not only create VMs and install software, but also register their n
 ##  
   
 ## Create your first VM
-1. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test1, " vm_create.yml` - create vm called `test1`   
+1. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test1, " sp_vm_create.yml` - create vm called `test1` 
+2. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test46, " -e "image_id='{{ images.windows19 }}'" sp_vm_create.yml` -- create VM with non-default OS (Ubuntu 20.04 is default)  
 2. `ansible-playbook --vault-password-file ../ansible_vault.txt sp_get_servers.yml` - get all your servers

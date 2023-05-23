@@ -1,9 +1,0 @@
----
-- hosts: all
-  gather_facts: False
-  roles:
-    - role: sp_vm_deploy
-      vars:
-        image: '{{ images.ub2204 }}'
-        size: '{{ sizes.small }}'
-        vm_tag: "webinar1"

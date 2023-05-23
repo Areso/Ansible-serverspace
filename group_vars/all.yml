@@ -51,7 +51,7 @@ locations:
   moscow: "ds1"
   kazakhstan: "kz"
 
-cpu:
+cpu_options:
   tiny: 1
   small: 2
   tres: 3
@@ -61,7 +61,7 @@ cpu:
   huge: 12
   vast: 16
 
-ram:
+ram_options:
   tiny: 1024
   small: 2048
   thres: 3072
@@ -91,9 +91,19 @@ images:
   windows19: "Windows-Server 2019 Std-X64"
   windows22: "Windows-Server 2022 Std-X64"
 
-ssh_keys_allowed:
-  windows19: False
-  windows22: False
+# what do I want to deploy?
+image: "{{ images.ub2004 }}"
+os_family: "{{'nix' if (image.find('Windows')==-1) else 'windows'}}"
+# with which params?
+cpu: "{{ cpu_options.tiny | int }}"
+ram: "{{ ram_options.tiny | int }}"
+vm_disk_size: 25600
+myssh_key_id: 8322
+mytag: "hackaton"
+# where
+location: "{{ locations.us_east }}"
+
+
 
 #note, there are Oracle, Debian, CentOS distros available
 #also, there are FreeBSD, Windows Server OS also available
