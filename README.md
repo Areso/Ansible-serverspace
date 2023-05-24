@@ -38,5 +38,6 @@ if you wanna not only create VMs and install software, but also register their n
   
 ## Create your first VM
 1. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test1, " sp_vm_create.yml` - create vm called `test1` 
-2. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test46, " -e "image_id='{{ images.windows19 }}'" sp_vm_create.yml` -- create VM with non-default OS (Ubuntu 20.04 is default)  
-2. `ansible-playbook --vault-password-file ../ansible_vault.txt sp_get_servers.yml` - get all your servers
+2. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test46, " -e "image_id='{{ images.ub2204 }}'" sp_vm_create.yml` -- create VM with non-default OS (Ubuntu 20.04 is default)  
+3. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test46, " -e "image_id='{{ images.windows19 }}'" sp_vm_create.yml` 
+4. `ansible-playbook --vault-password-file ../ansible_vault.txt sp_get_servers.yml` - get all your servers

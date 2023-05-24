@@ -1,0 +1,29 @@
+# create *nix vm (have SSH keys)
+- name: vm_create_nix
+  uri:
+    url: "https://api.serverspace.ru/api/v1/servers"
+    method: POST
+    headers:
+      "x-api-key": "{{ xapikey }}"
+    body:
+      location_id: "{{ location }}"
+      image_id: "{{ image }}"
+      cpu: "{{ cpu }}"
+      ram_mb: "{{ ram }}"
+      volumes: [{
+        "name": "boot",
+        "size_mb": "{{ vm_disk_size }}"
+      }]
+      networks: [{
+        "bandwidth_mbps": 50
+      }]
+      name: "{{ inventory_hostname }}"
+      ssh_key_ids: ["{{ myssh_key_id }}"]
+      applications_ids: []
+      server_init_script: ""
+      tags: ["{{ mytag }}"]
+    body_format: json
+    status_code: 201
+  register: vm_create_result
+  changed_when: 201
+  delegate_to: localhost
