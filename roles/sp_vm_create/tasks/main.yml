@@ -1,4 +1,9 @@
 ---
+- name: debug
+  debug:
+    msg: "{{ time_for_deploy }}"
+
+
 # get the local username under which the playbook is running
 - name: get_the_username
   become: False
@@ -19,11 +24,11 @@
   ignore_errors: True
 
 - name: import_vm_create_nix
-  include_tasks: nix.yml
+  include_tasks: call_nix_deploy.yml
   when: os_family == 'nix'
 
 - name: import_vm_create_windows
-  include_tasks: windows.yml
+  include_tasks: call_windows_deploy.yml
   when: os_family == 'windows'
 
 - name: set_task_id
@@ -32,7 +37,7 @@
 
 - name: only_finished_task_would_return_server_id
   pause:
-    seconds: 90
+    seconds: "{{ time_for_deploy }}"
 
 - name: get_task
   uri:
@@ -45,7 +50,6 @@
   register: task_answer
   changed_when: 200
   delegate_to: localhost
-
 
 - name: set_task_status
   set_fact:
@@ -94,50 +98,18 @@
   - name: print_ip
     debug:
       msg: "{{ server_ip }}"
-
+  
+   # we already removed these in the first tasks,
+   # but we removed by inventory name, not IP address
   - name: remove_server_fingerprints_if_any
     command: 'ssh-keygen -f ~/.ssh/known_hosts -R {{ server_ip }}'
     register: result_of_removing
     delegate_to: localhost
 
-  - name: print_result_of_removing
-    debug:
-      msg: "{{ result_of_removing }}"
-
-  - name: get_fingerprint_from_remote_host
-    shell: "ssh-keyscan -H -t rsa {{ server_ip }} >> ~/.ssh/known_hosts"
-    register: result_of_adding_fingerprint
-    delegate_to: localhost
-
-  - name: print_result_of_adding_fingerprint
-    debug:
-      msg: "{{ result_of_adding_fingerprint }}"
-
-  - name: set_user_password
-    set_fact:
-      user_password: "{{ root_password }}Hardening"
-  
-  - name: print_user_password
-    debug:
-      msg: "{{ user_password }}"
-
-  - name: add_new_user_to_remote_host
-    shell: "useradd -m -d /home/hackatoner -p $(openssl passwd -1 {{ user_password }}) hackatoner"
-    register: add_new_user_result
-    delegate_to: "{{ server_ip }}"
-
-  - name: print_add_new_user_result
-    debug:
-      msg: "{{ add_new_user_result }}"
-
-  - name: add_hackatoner_user_to_sudo_group
-    command: "usermod -aG sudo hackatoner"
-    register: add_to_sudo_group_result
-    delegate_to: "{{ server_ip }}"
-
-  - name: print_add_to_sudo_group_result
-    debug:
-      msg: "{{ add_to_sudo_group_result }}"
+  # here we add user to the server, and enable login-password login for the user
+  - name: import_config_nix_tasks
+    include_tasks: config_nix.yml
+    when: os_family == 'nix'
 
   - name: add_host_to_hosts
     shell: "echo '{{ server_ip }} {{ inventory_hostname }} # {{ vm_tag }}' >> /etc/hosts"

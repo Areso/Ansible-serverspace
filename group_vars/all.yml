@@ -91,6 +91,9 @@ images:
   windows19: "Windows-Server 2019 Std-X64"
   windows22: "Windows-Server 2022 Std-X64"
 
+#for more information, run
+#ansible-playbook --vault-password-file ../ansible_vault.txt sp_get_images.yml
+
 # what do I want to deploy?
 image: "{{ images.ub2004 }}"
 os_family: "{{'nix' if (image.find('Windows')==-1) else 'windows'}}"
@@ -101,14 +104,14 @@ vm_disk_size: 25600
 myssh_key_id: 8322
 mytag: "hackaton"
 # where
-location: "{{ locations.us_east }}"
+location: "{{ locations.kazakhstan }}"
 
 
+deploy_delay:
+  nix: 90
+  windows: 360
 
-#note, there are Oracle, Debian, CentOS distros available
-#also, there are FreeBSD, Windows Server OS also available
-#for more information, run
-#ansible-playbook --vault-password-file ../ansible_vault.txt sp_get_images.yml
+time_for_deploy: "{{ deploy_delay[os_family] }}"
 
 # used in sp_ssh_keys role
 operation: "get"
