@@ -1,8 +1,15 @@
 ---
+- name: test
+  set_fact:
+    vm_name: "{{ inventory_hostname.split('.')[0] }}"
+
+- name: print_result
+  debug:
+    msg: "{{ vm_name }}"
+
 - name: debug
   debug:
     msg: "{{ time_for_deploy }}"
-
 
 # get the local username under which the playbook is running
 - name: get_the_username
@@ -11,6 +18,10 @@
   register: local_username
   delegate_to: localhost
 
+# this block doesn't have OS family condition, because we don't know
+# what previous OS was (on the previous VM)
+
+# delete FQDN, if apply
 # delete records from the user's known_hosts
 - name: delete_records_from_know_hosts
   shell: "ssh-keygen -f '/home/{{ local_username.stdout }}/.ssh/known_hosts' -R {{ inventory_hostname }}"
@@ -20,6 +31,19 @@
 # delete records from the user's known_hosts
 - name: delete_records_from_know_hosts_no_path
   shell: "ssh-keygen -R {{ inventory_hostname }}"
+  delegate_to: localhost
+  ignore_errors: True
+
+# delete shortname, if apply
+# delete records from the user's known_hosts
+- name: delete_records_from_know_hosts
+  shell: "ssh-keygen -f '/home/{{ local_username.stdout }}/.ssh/known_hosts' -R {{ vm_name }}"
+  delegate_to: localhost
+  ignore_errors: True
+
+# delete records from the user's known_hosts
+- name: delete_records_from_know_hosts_no_path
+  shell: "ssh-keygen -R {{ vm_name }}"
   delegate_to: localhost
   ignore_errors: True
 
@@ -39,7 +63,7 @@
   pause:
     seconds: "{{ time_for_deploy }}"
 
-- name: get_task
+- name: get_task_details
   uri:
     url: "https://api.serverspace.{{ sp_domain }}/api/v1/tasks/{{ task_id }}"
     method: GET
@@ -55,7 +79,7 @@
   set_fact:
     task_status: "{{ task_answer.json.task.is_completed }}"
 
-- name: Install, configure, and start Apache
+- name: proceed_if_created
   block:
 
   - name: set_server_id
@@ -99,24 +123,15 @@
     debug:
       msg: "{{ server_ip }}"
   
-   # we already removed these in the first tasks,
-   # but we removed by inventory name, not IP address
-  - name: remove_server_fingerprints_if_any
-    command: 'ssh-keygen -f ~/.ssh/known_hosts -R {{ server_ip }}'
-    register: result_of_removing
-    delegate_to: localhost
-
-  # here we add user to the server, and enable login-password login for the user
-  - name: import_config_nix_tasks
-    include_tasks: config_nix.yml
-    when: os_family == 'nix'
-
   - name: add_host_to_hosts
     shell: "echo '{{ server_ip }} {{ inventory_hostname }} # {{ vm_tag }}' >> /etc/hosts"
     become: yes
     delegate_to: localhost
     when: dns == "local"
-  
+  - name: test
+    debug:
+      msg: "{{ inventory_hostname }}"
+
   - name: clfl_add_dns_record
     uri:
       url: "https://api.cloudflare.com/client/v4/zones/{{ clfl_zone_id }}/dns_records"
@@ -127,7 +142,7 @@
       body_format: json
       body:
         content: "{{ server_ip }}"
-        name: "{{ inventory_hostname }}.{{ user_domain }}"
+        name: "{{ inventory_hostname }}"
         proxied: False
         type: "A"
         comment: "serverspace"
@@ -137,5 +152,14 @@
     changed_when: 200
     delegate_to: localhost
     when: dns == "cloudflare"
-    
+
+  - name: wait_a_bit_for_public_dns_update
+    pause:
+      seconds: 30
+      
+  # here we add user to the server, and enable login-password login for the user
+  - name: import_config_nix_tasks
+    include_tasks: config_nix.yml
+    when: os_family == 'nix'
+
   when: task_status == "Completed"

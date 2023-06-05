@@ -1,5 +1,5 @@
   - name: get_fingerprint_from_remote_host
-    shell: "ssh-keyscan -H -t rsa {{ server_ip }} >> ~/.ssh/known_hosts"
+    shell: "ssh-keyscan -H -t rsa {{ inventory_hostname }} >> ~/.ssh/known_hosts"
     register: result_of_adding_fingerprint
     delegate_to: localhost
 
@@ -11,10 +11,9 @@
     debug:
       msg: "{{ user_password }}"
   
-  - name: add_new_user_to_remote_host
+  - name: add_new_user_to_remote_host_etc_hosts
     shell: "useradd -m -d /home/hackatoner -p $(openssl passwd -1 {{ user_password }}) hackatoner"
     register: add_new_user_result
-    delegate_to: "{{ server_ip }}"
 
   - name: print_add_new_user_result
     debug:
@@ -23,7 +22,6 @@
   - name: add_hackatoner_user_to_sudo_group
     command: "usermod -aG sudo hackatoner"
     register: add_to_sudo_group_result
-    delegate_to: "{{ server_ip }}"
 
   - name: print_add_to_sudo_group_result
     debug:
