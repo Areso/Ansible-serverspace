@@ -1,15 +1,30 @@
 ---
-- name: test
+# we need to be sure that sudo password is provided
+# for local editing /etc/hosts
+# in case dns is set to local (it is default option)
+- name: check_become_before_execution
+  command: "echo 1"
+  become: yes
+  delegate_to: localhost
+  when: dns == "local"
+
+- name: get_dns_records_from_sp
+  uri:
+    url: https://api.serverspace.{{ sp_domain }}/api/v1/domains/{{ user_domain_sp }}/records
+    method: GET
+    headers:
+      "x-api-key": "{{ xapikey }}"
+    body_format: json
+    status_code: 200
+  register: sp_dns_records
+  changed_when: 200
+  delegate_to: localhost
+  run_once: True
+  when: dns == "serverspace"
+
+- name: set_vm_name_from_fqdn
   set_fact:
     vm_name: "{{ inventory_hostname.split('.')[0] }}"
-
-- name: print_result
-  debug:
-    msg: "{{ vm_name }}"
-
-- name: debug
-  debug:
-    msg: "{{ time_for_deploy }}"
 
 # get the local username under which the playbook is running
 - name: get_the_username
@@ -142,7 +157,7 @@
       body_format: json
       body:
         content: "{{ server_ip }}"
-        name: "{{ inventory_hostname }}"
+        name: "{{ vm_name }}"
         proxied: False
         type: "A"
         comment: "serverspace"
@@ -152,6 +167,25 @@
     changed_when: 200
     delegate_to: localhost
     when: dns == "cloudflare"
+
+  - name: sp_add_dns_record
+    uri:
+      url: "https://api.serverspace.{{ sp_domain }}/api/v1/domains/{{ user_domain_sp }}/records"
+      method: POST
+      headers:
+        "x-api-key": "{{ xapikey }}"
+      body_format: json
+      body:
+        ip: "{{ server_ip }}"
+        name: "{{ vm_name }}.{{ user_domain_sp }}"
+        type: "A"
+        comment: "serverspace"
+        ttl: "1h"
+      status_code: 201
+    register: sp_dns_record_add_result
+    changed_when: 201
+    delegate_to: localhost
+    when: dns == "serverspace" and sp_dns_records.status == 200
 
   - name: wait_a_bit_for_public_dns_update
     pause:

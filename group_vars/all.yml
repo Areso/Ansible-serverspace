@@ -40,9 +40,13 @@ clfl_zone_id: !vault |
           3935356436343635330a366565363932333565613130326339373465666232616362643436323131
           65363731666133336230333639666164323332343533306435623632306531336264303937326434
           6638613564663432616433386235303830393437646433373736
+# end of Cloudflare block
 
 user_domain: "xlaba.site"
-# end of Cloudflare block
+# for some reason, serverspace uses domains in the following notation
+# "yourdomain.zone." with A DOT in the end
+# user_domain_sp: "atibati.com."
+user_domain_sp: "{{ user_domain }}."
 
 locations:
   canada: "ca"
@@ -121,3 +125,7 @@ object: "server"
 
 # used in sp_vm_deploy role
 dns: "local"
+# dns could also accept "cloudflare" and "serverspace" (or "sp") options
+
+external_dns: "serverspace"
+# could accept also "cloudflare". either of them.

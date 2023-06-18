@@ -16,7 +16,7 @@ if you wanna not only create VMs and install software, but also register their n
 7. Create your API Token (in open your profile in the top-right icon->My Profile)  
 8. Open site, get from bottom-right Zone ID
 9. Encrypt your API Token:  
-`ansible-vault encrypt_string --vault-password-file ../ansible_vault.txt 'yourCloudlareAPITokne' --name 'clfr_auth_key'`
+`ansible-vault encrypt_string --vault-password-file ../ansible_vault.txt 'yourCloudflareAPIToken' --name 'clfr_auth_key'`
 10. Encrypt your email:
 `ansible-vault encrypt_string --vault-password-file ../ansible_vault.txt 'yourCloudflareEmail' --name 'clfr_auth_email'`
 11. Encrypt your Zone ID:
@@ -43,4 +43,7 @@ if you wanna not only create VMs and install software, but also register their n
 2. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test1, " -K sp_vm_create.yml` - create vm called `test1`  
 3. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test46, " -e "image='{{ images.ub2204 }}'" -K sp_vm_create.yml` -- create VM with non-default OS (Ubuntu 20.04 is default)  
 4. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test46, " -e "image='{{ images.windows19 }}'" -K sp_vm_create.yml` 
-5. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test1, " -e "dns=cloudflare" sp_vm_create.yml` - create vm called `test1` with using cloudflare DNS, after creation it would be accessible as `test1.xlaba.site`
+5. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test1, " -e "dns=cloudflare" sp_vm_create.yml` - create vm called `test1` with using cloudflare DNS, after creation it would be accessible as `test1.xlaba.site`  
+  
+## Delete your VM
+1. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test68, " sp_vm_destroy.yml --tags="get_dns"`

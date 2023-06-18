@@ -1,0 +1,176 @@
+---
+- name: check_become_before_execution
+  command: "echo 1"
+  become: yes
+  delegate_to: localhost
+  when: dns == "local"
+
+- name: set_vm_name_from_fqdn
+  set_fact:
+    vm_name: "{{ inventory_hostname.split('.')[0] }}"
+
+# get the local username under which the playbook is running
+- name: get_the_username
+  become: False
+  local_action: command whoami
+  register: local_username
+  delegate_to: localhost
+
+- name: get_servers
+  uri:
+    url: "https://api.serverspace.{{ sp_domain }}/api/v1/servers"
+    method: GET
+    headers:
+      "x-api-key": "{{ xapikey }}"
+    body_format: json
+    status_code: 200
+  register: servers
+  changed_when: 200
+  delegate_to: localhost
+  run_once: True
+
+- debug:
+    msg: "{{ servers.json.servers }}"
+  run_once: True
+
+- name: set_vm_id
+  set_fact:
+    vm_id: "{{ item.id }}"
+  with_items: "{{ servers.json.servers }}"
+  when: 
+    - item.name == vm_name
+
+- debug:
+    msg: "{{ vm_id }}"
+  when: vm_id is defined
+
+- name: delete_server
+  uri:
+    url: "https://api.serverspace.{{ sp_domain }}/api/v1/servers/{{ vm_id }}"
+    method: DELETE
+    headers:
+      "x-api-key": "{{ xapikey }}"
+    body_format: json
+    status_code: 200
+  when: vm_id is defined
+  register: delete_result
+  changed_when: 200
+  delegate_to: localhost
+
+# delete FQDN, if apply
+# delete records from the user's known_hosts
+- name: delete_records_from_know_hosts
+  shell: "ssh-keygen -f '/home/{{ local_username.stdout }}/.ssh/known_hosts' -R {{ inventory_hostname }}"
+  delegate_to: localhost
+  ignore_errors: True
+
+# delete records from the user's known_hosts
+- name: delete_records_from_know_hosts_no_path
+  shell: "ssh-keygen -R {{ inventory_hostname }}"
+  delegate_to: localhost
+  ignore_errors: True
+
+# delete shortname, if apply
+# delete records from the user's known_hosts
+- name: delete_records_from_know_hosts
+  shell: "ssh-keygen -f '/home/{{ local_username.stdout }}/.ssh/known_hosts' -R {{ vm_name }}"
+  delegate_to: localhost
+  ignore_errors: True
+
+# delete records from the user's known_hosts
+- name: delete_records_from_know_hosts_no_path
+  shell: "ssh-keygen -R {{ vm_name }}"
+  delegate_to: localhost
+  ignore_errors: True
+
+- name: delete_from_etc_hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    state: absent
+    regexp: "{{ vm_name }}"
+  become: yes
+  delegate_to: localhost
+  when: dns == "local"
+  tags: delete_from_etc_hosts
+
+# not found isn't a error
+- name: get_dns_records_from_sp
+  uri:
+    url: https://api.serverspace.{{ sp_domain }}/api/v1/domains/{{ user_domain_sp }}/records
+    method: GET
+    headers:
+      "x-api-key": "{{ xapikey }}"
+    body_format: json
+    status_code: 200, 404
+  register: sp_dns_records
+  changed_when: 200
+  delegate_to: localhost
+  run_once: True
+  tags: dns_sp
+
+- name: set_sp_dns_record_id
+  set_fact:
+    sp_dns_id: "{{ item.id }}"
+  with_items: "{{ sp_dns_records.json.records }}"
+  when: 
+    - item.name == inventory_hostname + "."
+    - sp_dns_records.status == 200 
+  tags: get_dns
+
+- name: show_id
+  debug:
+    msg: "{{ sp_dns_id }}"
+  when: sp_dns_id is defined
+  tags: get_dns
+
+- name: serverspace_delete_dns_record
+  uri:
+    url: "https://api.serverspace.{{ sp_domain }}/api/v1/domains/{{ user_domain_sp }}/records/{{ sp_dns_id }}"
+    method: DELETE
+    headers:
+      "x-api-key": "{{ xapikey }}"
+    status_code: 200
+  register: dns_records
+  delegate_to: localhost
+  when: sp_dns_id is defined
+
+- name: clfl_get_dns_record
+  uri:
+    url: "https://api.cloudflare.com/client/v4/zones/{{ clfl_zone_id }}/dns_records"
+    method: GET
+    headers:
+      "X-Auth-Key": "{{ clfl_auth_key }}"
+      "X-Auth-Email": "{{ clfl_auth_email }}"
+    status_code: 200
+  register: list_dns_records
+  changed_when: 200
+  delegate_to: localhost
+  run_once: True
+  tags: get_dns
+
+- name: set_dns_record_id
+  set_fact:
+    dns_id: "{{ item.id }}"
+  with_items: "{{ list_dns_records.json.result }}"
+  when: 
+    - item.name == inventory_hostname
+  tags: get_dns
+
+- name: show_id
+  debug:
+    msg: "{{ dns_id }}"
+  when: dns_id is defined
+  tags: get_dns
+
+
+- name: clfl_delete_dns_record
+  uri:
+    url: "https://api.cloudflare.com/client/v4/zones/{{ clfl_zone_id }}/dns_records/{{ dns_id }}"
+    method: DELETE
+    headers:
+      "X-Auth-Key": "{{ clfl_auth_key }}"
+      "X-Auth-Email": "{{ clfl_auth_email }}"
+    status_code: 200
+  register: dns_records
+  delegate_to: localhost
+  when: dns_id is defined
