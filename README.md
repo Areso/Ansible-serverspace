@@ -36,14 +36,16 @@ if you wanna not only create VMs and install software, but also register their n
 5. `ansible-playbook --vault-password-file ../ansible_vault.txt -e "operation=delete ssh_key_id=11340" sp_ssh_keys.yml` - delete user key by key id  
 ##  
   
-## Create your first VM
+## Check any VMs
 1. `ansible-playbook --vault-password-file ../ansible_vault.txt sp_get_servers.yml` - get all your servers  
 --for whom who may concern: it asks sudo password to add records to /etc/hosts--  
 --rols/sp_vm_create/tasks/main.yml # add_host_to_hosts task--  
-2. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test1, " -K sp_vm_create.yml` - create vm called `test1`  
-3. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test46, " -e "image='{{ images.ub2204 }}'" -K sp_vm_create.yml` -- create VM with non-default OS (Ubuntu 20.04 is default)  
-4. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test46, " -e "image='{{ images.windows19 }}'" -K sp_vm_create.yml` 
-5. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test1, " -e "dns=cloudflare" sp_vm_create.yml` - create vm called `test1` with using cloudflare DNS, after creation it would be accessible as `test1.xlaba.site`  
+  
+## Create your first VM
+1. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test1, " -K sp_vm_create.yml` - create vm called `test1`  
+2. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test46, " -e "image='{{ images.ub2204 }}'" -K sp_vm_create.yml` -- create VM with non-default OS (Ubuntu 20.04 is default)  
+3. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test46, " -e "image='{{ images.windows19 }}'" -K sp_vm_create.yml` 
+4. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test1, " -e "dns=cloudflare" sp_vm_create.yml` - create vm called `test1` with using cloudflare DNS, after creation it would be accessible as `test1.xlaba.site`  
   
 ## Delete your VM
-1. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test68, " sp_vm_destroy.yml --tags="get_dns"`
+1. `ansible-playbook --vault-password-file ../ansible_vault.txt -i "test68, "  -K sp_vm_destroy.yml`

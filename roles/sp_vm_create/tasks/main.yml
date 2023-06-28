@@ -22,6 +22,11 @@
   run_once: True
   when: dns == "serverspace"
 
+- name: collect_facts
+  ansible.builtin.setup:
+  delegate_to: localhost
+  run_once: True
+
 - name: set_vm_name_from_fqdn
   set_fact:
     vm_name: "{{ inventory_hostname.split('.')[0] }}"
@@ -126,9 +131,10 @@
     set_fact:
       root_password: "{{ vm_details.json.server.password }}"
   
-  - name: print_root_password
-    debug:
-      msg: "{{ root_password }}"
+  # never print out ;)
+  #- name: print_root_password
+  #  debug:
+  #    msg: "{{ root_password }}"
 
   - name: set_ip
     set_fact:
@@ -195,5 +201,39 @@
   - name: import_config_nix_tasks
     include_tasks: config_nix.yml
     when: os_family == 'nix'
+  
+  - name: prepare_creds_line_with_ips
+    set_fact:
+      credline: "server: {{ server_ip }}, user: hackatoner, pass: {{ user_password }}"
+    when: os_family == 'nix' and dns == "local"
+
+  - name: prepare_creds_line_with_ips
+    set_fact:
+      credline: "{{ inventory_hostname }}, user: hackatoner, pass: {{ user_password }}"
+    when: os_family == 'nix' and dns != "local" 
+
+  - name: print_creds_to_console
+    debug:
+      msg: "{{ credline }}"
+    when: os_family == 'nix' and exposure_creds == "console"
+
+  - name: set_output_filename_temp
+    set_fact:
+      filename_temp: "{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}.txt"
+    run_once: True
+    delegate_to: localhost
+    when: filename is not defined and exposure_creds == "file"
+
+  - name: set_output_filename
+    set_fact:
+      filename: "{{ filename_temp | regex_replace('-', '_') }}"
+    run_once: True
+    delegate_to: localhost
+    when: filename is not defined and exposure_creds == "file"
+
+  - name: print_to_file_creds_ips
+    shell: "echo {{ credline }} >> {{ playbook_dir }}/{{ filename }}"
+    delegate_to: localhost
+    when: exposure_creds == "file"
 
   when: task_status == "Completed"

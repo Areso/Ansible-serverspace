@@ -124,8 +124,9 @@ operation: "get"
 object: "server"
 
 # used in sp_vm_deploy role
-dns: "local"
-# dns could also accept "cloudflare" and "serverspace" (or "sp") options
+dns: "serverspace"
+# dns could accept: "local", "cloudflare", "serverspace"
 
-external_dns: "serverspace"
-# could accept also "cloudflare". either of them.
+
+exposure_creds: "file"
+# exposure_creds could accept: "console", "file"
