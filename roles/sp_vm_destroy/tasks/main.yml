@@ -108,14 +108,18 @@
   run_once: True
   tags: dns_sp
 
-- name: set_sp_dns_record_id
-  set_fact:
-    sp_dns_id: "{{ item.id }}"
-  with_items: "{{ sp_dns_records.json.records }}"
-  when: 
-    - item.name == inventory_hostname + "."
-    - sp_dns_records.status == 200 
-  tags: get_dns
+# we need to add this block wrapping, because inner when applied only for set_fact condition
+# but the task itself is called anyway, so we need to check precondition first
+- name: wrapper
+  block:
+  - name: set_sp_dns_record_id
+    set_fact:
+      sp_dns_id: "{{ item.id }}"
+    with_items: "{{ sp_dns_records.json.records }}"
+    when: 
+      - item.name == inventory_hostname + "."
+    tags: get_dns
+  when: sp_dns_records.status == 200 
 
 - name: show_id
   debug:
@@ -145,21 +149,26 @@
   register: list_dns_records
   changed_when: 200
   delegate_to: localhost
-  run_once: True
+  when: dns=="cloudflare"
   tags: get_dns
 
-- name: set_dns_record_id
-  set_fact:
-    dns_id: "{{ item.id }}"
-  with_items: "{{ list_dns_records.json.result }}"
-  when: 
-    - item.name == inventory_hostname
-  tags: get_dns
+# we need to add this block wrapping, because inner when applied only for set_fact condition
+# but the task itself is called anyway, so we need to check precondition first
+- name: clfl_set_cf_dns_record_id_wrap
+  block:
+  - name: clfl_set_cf_dns_record_id
+    set_fact:
+      cf_dns_id: "{{ item.id }}"
+    with_items: "{{ list_dns_records.json.result }}"
+    when: 
+      - item.name == inventory_hostname
+    tags: get_dns
+  when: dns=="cloudflare"
 
 - name: show_id
   debug:
-    msg: "{{ dns_id }}"
-  when: dns_id is defined
+    msg: "{{ cf_dns_id }}"
+  when: cf_dns_id is defined
   tags: get_dns
 
 
@@ -173,4 +182,4 @@
     status_code: 200
   register: dns_records
   delegate_to: localhost
-  when: dns_id is defined
+  when: cf_dns_id is defined

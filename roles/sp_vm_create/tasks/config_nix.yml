@@ -6,7 +6,10 @@
   - name: set_user_password
     set_fact:
       user_password: "{{ root_password }}Hardening"
-  
+
+  - name: gather_facts_from_remote
+    setup:
+
   - name: add_new_user_to_remote_host_etc_hosts
     shell: "useradd -m -d /home/hackatoner -p $(openssl passwd -1 {{ user_password }}) hackatoner"
     register: add_new_user_result
