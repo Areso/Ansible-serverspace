@@ -5,9 +5,13 @@
   delegate_to: localhost
   when: dns == "local"
 
-- name: set_vm_name_from_fqdn
+- name: set_vm_name_from_inventory_name
   set_fact:
     vm_name: "{{ inventory_hostname.split('.')[0] }}"
+
+- name: set_fact_fqdn
+  set_fact:
+    fqdn: "{{ vm_name}}.{{ user_domain }}"
 
 # get the local username under which the playbook is running
 - name: get_the_username
@@ -117,7 +121,7 @@
       sp_dns_id: "{{ item.id }}"
     with_items: "{{ sp_dns_records.json.records }}"
     when: 
-      - item.name == inventory_hostname + "."
+      - item.name == fqdn + "."
     tags: get_dns
   when: sp_dns_records.status == 200 
 
@@ -161,7 +165,7 @@
       cf_dns_id: "{{ item.id }}"
     with_items: "{{ list_dns_records.json.result }}"
     when: 
-      - item.name == inventory_hostname
+      - item.name == fqdn
     tags: get_dns
   when: dns=="cloudflare"
 
