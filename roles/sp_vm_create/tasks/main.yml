@@ -193,12 +193,12 @@
   
   - name: prepare_creds_line_with_ips
     set_fact:
-      credline: "server: {{ server_ip }}, user: hackatoner, pass: {{ user_password }}Hardening"
+      credline: "server: {{ server_ip }}, user: hackatoner, pass: {{ user_password }}"
     when: os_family == 'nix' and dns == "local"
 
   - name: prepare_creds_line_with_ips
     set_fact:
-      credline: "{{ inventory_hostname }}, user: hackatoner, pass: {{ user_password }}Hardening"
+      credline: "{{ inventory_hostname }}, user: hackatoner, pass: {{ user_password }}"
     when: os_family == 'nix' and dns != "local" 
 
   - name: print_creds_to_console
