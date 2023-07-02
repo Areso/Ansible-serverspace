@@ -18,7 +18,7 @@
       networks: [{
         "bandwidth_mbps": 50
       }]
-      name: "{{ vm_name }}"
+      name: "{{ short_name }}"
       applications_ids: []
       server_init_script: ""
       tags: ["{{ mytag }}"]

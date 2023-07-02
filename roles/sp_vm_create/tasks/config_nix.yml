@@ -1,5 +1,5 @@
-  - name: get_fingerprint_from_remote_host
-    shell: "ssh-keyscan -H -t rsa {{ inventory_hostname }} >> ~/.ssh/known_hosts"
+  - name: get_fingerprint_from_remote_host_fqdn
+    shell: "ssh-keyscan -H -t rsa {{ fqdn }} >> ~/.ssh/known_hosts"
     register: result_of_adding_fingerprint
     delegate_to: localhost
 

@@ -27,9 +27,14 @@
   delegate_to: localhost
   run_once: True
 
-- name: set_vm_name_from_fqdn
+- name: set_short_name_from_fqdn
   set_fact:
-    vm_name: "{{ inventory_hostname.split('.')[0] }}"
+    short_name: "{{ inventory_hostname.split('.')[0] }}"
+
+- name: set_fqdn
+  set_fact:
+    fqdn: "{{ short_name }}.{{ user_domain }}"
+  when: dns!="local"
 
 # get the local username under which the playbook is running
 - name: get_the_username
@@ -57,13 +62,13 @@
 # delete shortname, if apply
 # delete records from the user's known_hosts
 - name: delete_records_from_know_hosts
-  shell: "ssh-keygen -f '/home/{{ local_username.stdout }}/.ssh/known_hosts' -R {{ vm_name }}"
+  shell: "ssh-keygen -f '/home/{{ local_username.stdout }}/.ssh/known_hosts' -R {{ short_name }}"
   delegate_to: localhost
   ignore_errors: True
 
 # delete records from the user's known_hosts
 - name: delete_records_from_know_hosts_no_path
-  shell: "ssh-keygen -R {{ vm_name }}"
+  shell: "ssh-keygen -R {{ short_name }}"
   delegate_to: localhost
   ignore_errors: True
 
@@ -106,11 +111,7 @@
     set_fact:
       server_id: "{{ task_answer.json.task.server_id }}"
 
-  - name: print_server_id
-    debug:
-      msg: "{{ server_id }}"
-  
-    # get vm details
+  # get vm details
   - name: get_vm_details
     uri:
       url: "https://api.serverspace.ru/api/v1/servers/{{ server_id }}"
@@ -123,19 +124,10 @@
     changed_when: 200
     delegate_to: localhost
 
-  - name: print_vm_details
-    debug:
-      msg: "{{ vm_details }}"
-  
   - name: set_root_password
     set_fact:
       root_password: "{{ vm_details.json.server.password }}"
   
-  # never print out ;)
-  #- name: print_root_password
-  #  debug:
-  #    msg: "{{ root_password }}"
-
   - name: set_ip
     set_fact:
       server_ip: "{{ vm_details.json.server.nics[0].ip_address }}"
@@ -149,9 +141,6 @@
     become: yes
     delegate_to: localhost
     when: dns == "local"
-  - name: test
-    debug:
-      msg: "{{ inventory_hostname }}"
 
   - name: clfl_add_dns_record
     uri:
@@ -163,7 +152,7 @@
       body_format: json
       body:
         content: "{{ server_ip }}"
-        name: "{{ vm_name }}"
+        name: "{{ short_name }}"
         proxied: False
         type: "A"
         comment: "serverspace"
@@ -183,7 +172,7 @@
       body_format: json
       body:
         ip: "{{ server_ip }}"
-        name: "{{ vm_name }}.{{ user_domain_sp }}"
+        name: "{{ short_name }}.{{ user_domain_sp }}"
         type: "A"
         comment: "serverspace"
         ttl: "1h"
@@ -204,12 +193,12 @@
   
   - name: prepare_creds_line_with_ips
     set_fact:
-      credline: "server: {{ server_ip }}, user: hackatoner, pass: {{ user_password }}"
+      credline: "server: {{ server_ip }}, user: hackatoner, pass: {{ user_password }}Hardening"
     when: os_family == 'nix' and dns == "local"
 
   - name: prepare_creds_line_with_ips
     set_fact:
-      credline: "{{ inventory_hostname }}, user: hackatoner, pass: {{ user_password }}"
+      credline: "{{ inventory_hostname }}, user: hackatoner, pass: {{ user_password }}Hardening"
     when: os_family == 'nix' and dns != "local" 
 
   - name: print_creds_to_console

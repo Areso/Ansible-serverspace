@@ -108,7 +108,7 @@ vm_disk_size: 25600
 myssh_key_id: 8322
 mytag: "hackaton"
 # where
-location: "{{ locations.amsterdam }}"
+location: "{{ locations.us_east }}"
 
 
 deploy_delay:
